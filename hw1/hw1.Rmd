@@ -34,6 +34,7 @@ This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-
 
  **certification**
 
+
 ## Q3. Linux Shell Commands
 
 1. The `/mnt/mimiciv/1.0` folder on teaching server contains data sets from MIMIC-IV. Refer to the documentation <https://mimic.mit.edu/docs/iv/> for details of data files.  
