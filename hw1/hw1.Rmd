@@ -234,3 +234,90 @@ cd
 ### Q5. More fun with Linux
 
 Try following commands in Bash and interpret the results: `cal`, `cal 2021`, `cal 9 1752` (anything unusual?), `date`, `hostname`, `arch`, `uname -a`, `uptime`, `who am i`, `who`, `w`, `id`, `last | head`, `echo {con,pre}{sent,fer}{s,ed}`, `time sleep 5`, `history | tail`.
+
+**solution**
+
+```{bash}
+cal
+```
+cal is today's date showed in calendar
+```{bash}
+cal 2021
+```
+cal 2021 is calendar in 2021
+
+```{bash}
+cal 9 1752
+```
+cal 9 1752 is calendar in september 1752
+
+```{bash}
+date
+```
+date is today's date and time
+
+```{bash}
+hostname
+```
+it shows the hostname of the computer
+
+```{bash}
+arch
+```
+
+is used to find the computer's architecture type
+
+```{bash}
+uname -a
+```
+this command print kernal name, hostname, kernal release, kernal version, machine hardware name, operating system name
+
+```{bash}
+uptime
+```
+uptime shows current time, how long the system is active, number of users currently logged into, and the load time for the past 1, 5 and 15 minutes respectively
+
+```{bash}
+whoami
+```
+
+username of the current user
+
+```{bash}
+who
+```
+shows users currently logged in to UNIX system
+
+```{bash}
+w
+```
+
+w command shows uptime and show is logged in and what did they do
+
+```{bash}
+id
+```
+
+id command is used to see the user id and group id
+
+```{bash}
+last | head
+```
+
+`last` command in Linux is used to display the list of all the users logged in and out, `last | head` shows the first few lines of the list
+
+```{bash}
+echo {con,pre}{sent,fer}{s,ed}
+```
+
+this command gives us the combination of all possible words
+
+
+```{bash}
+time sleep 5
+```
+```{bash}
+history | tail
+```
+
+it shows the last few lines of the history
