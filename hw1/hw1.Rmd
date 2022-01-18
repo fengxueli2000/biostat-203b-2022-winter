@@ -48,6 +48,16 @@ Please, do **not** put these data files into Git; they are big. Do **not** copy 
 
 2. Display the contents in the folders `core`, `hosp`, `icu`. Why are these data files distributed as `.csv.gz` files instead of `.csv` (comma separated values) files? Read the page <https://mimic.mit.edu/docs/iv/> to understand what's in each folder.
 
+**solution**
+
+```{bash}
+ls -l /mnt/mimiciv/1.0
+ls -l /mnt/mimiciv/1.0/core
+ls -l /mnt/mimiciv/1.0/icu
+ls -l /mnt/mimiciv/1.0/hosp
+```
+CSV.GZ is a CSV file compressed. CSV file is very big, so it be compressed to be easier to store and send. Core file include patient stay information. ICU file include data collected from cilnical information system used within ICU. HOSP file include hospital level data form patients, like labs and micro information.
+
 3. Briefly describe what bash commands `zcat`, `zless`, `zmore`, and `zgrep` do.
 
 4. What's the output of following bash script?
