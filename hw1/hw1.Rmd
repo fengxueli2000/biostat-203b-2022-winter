@@ -51,14 +51,28 @@ Please, do **not** put these data files into Git; they are big. Do **not** copy 
 **solution**
 
 ```{bash}
+# display content of mimiciv data
 ls -l /mnt/mimiciv/1.0
+# display content of core folder
 ls -l /mnt/mimiciv/1.0/core
+# display content of icu folder
 ls -l /mnt/mimiciv/1.0/icu
+# display content of hosp folder
 ls -l /mnt/mimiciv/1.0/hosp
 ```
-CSV.GZ is a CSV file compressed. CSV file is very big, so it be compressed to be easier to store and send. Core file include patient stay information. ICU file include data collected from cilnical information system used within ICU. HOSP file include hospital level data form patients, like labs and micro information.
+CSV.GZ is a CSV file compressed. CSV file is very big, so it be compressed to be easier to store and send. Core folder include patient stay information. ICU folder include data collected from cilnical information system used within ICU. HOSP folder include hospital level data form patients, like labs and micro information.
 
 3. Briefly describe what bash commands `zcat`, `zless`, `zmore`, and `zgrep` do.
+
+**solution**
+
+zcat command can be used to view the compressed file without uncompressing that file.
+
+zgrep command can be used to search inside a compressed file. zegrep is like grep command in uncompressed file 
+
+zless is used to read gz file and paginate it. zless is like less in uncompressed file 
+
+zmore is used to read gz file and paginate it. zmore is like more in uncompressed file 
 
 4. What's the output of following bash script?
     ```{bash, eval=F}
@@ -67,11 +81,80 @@ CSV.GZ is a CSV file compressed. CSV file is very big, so it be compressed to be
         ls -l $datafile
       done
     ```
+
+**solution**
+
+this bash script display all the compressed file in core folder
+
 Display the number of lines in each data file using a similar loop.
+
+```{bash}
+for datafile in /mnt/mimiciv/1.0/core/*.gz
+  do
+    wc -l $datafile
+  done
+
+```
 
 5. Display the first few lines of `admissions.csv.gz`. How many rows are in this data file? How many unique patients (identified by `subject_id`) are in this data file? (Hint: combine Linux commands `zcat`, `head`/`tail`, `awk`, `sort`, `uniq`, `wc`, and so on.)
 
+**solution**
+
+display the first five lines 
+```{bash}
+cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | head -n 5
+```
+```{bash}
+cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | wc -l
+```
+
+there are **523741** lines in the file data, including the head
+
+```{bash}
+cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | awk -F',' '{print $1}' | sort -u |wc -l
+```
+
+there are 256879 unique string in the subject_id column (including "subject_id" and patient id), so the there are 256879-1 = **256878** unique patient in the file
+
 6. What are the possible values taken by each of the variable `admission_type`, `admission_location`, `insurance`, and `ethnicity`? Also report the count for each unique value of these variables. (Hint: combine Linux commands `zcat`, `head`/`tail`, `awk`, `uniq -c`, `wc`, and so on.)
+
+**solution**
+
+variable admission_type
+```{bash}
+cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | awk -F',' '{print $6}' | sort -u |wc -l
+```
+
+there are **9** admission type in this fata file
+
+variable admission_location
+
+```{bash}
+cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | awk -F',' '{print $7}' | sort -u |wc -l
+```
+
+there are **12** admission location in this fata file
+
+variable insurance
+```{bash}
+cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | awk -F',' '{print $9}' | sort -u |wc -l
+```
+there are **3** admission location in this fata file
+
+variable ethnicity
+
+```{bash}
+cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | awk -F',' '{print $12}' | sort -u |wc -l
+```
+
+there are **8** admission location in this fata file
 
 ## Q4. Who's popular in Price and Prejudice
 
