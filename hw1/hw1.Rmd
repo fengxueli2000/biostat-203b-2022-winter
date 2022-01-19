@@ -40,7 +40,7 @@ This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-
 
 **certification from PhysioNet**
 
-![avatar](/home/lifengxue2000/R/wintwe/hw1/prove.png)
+![](/home/lifengxue2000/R/wintwe/hw1/prove.png)
 
 ## Q3. Linux Shell Commands
 
@@ -181,7 +181,6 @@ Explain what `wget -nc` does. Do **not** put this text file `pg42671.txt` in Git
 **solution**
 
 ```{bash}
-cd 
 for char in Elizabeth Jane Lydia Darcy
 do
   echo $char:
@@ -224,18 +223,16 @@ Explain the output. Explain the meaning of `"$1"`, `"$2"`, and `"$3"` in this sh
 use `chmod` make the file executable by the owner
 
 ```{bash}
-cd
 chmod u+x middle.sh
 ls -l
 ```
 
 ```{bash}
-cd
 ./middle.sh pg42671.txt 20 5
 ```
 `"$1"`, `"$2"`, and `"$3"` are the parameters. The output of the command is the 16-20 lines of pg42671.txt file(Pride and Prejudice),the command first select the first 20( parameter `"$2"`)lines of pg42671.txt file (parameter `"$1"`),then the output be piped and select the last 5(parameter `"$3"`) lines from the first output. The final output is the author and edition of the book
 
-`"$1"`, `"$2"`, and `"$3"` are the parameters. 
+The first line of the shell script meaning that the script should always be run with bash
 
 ### Q5. More fun with Linux
 
