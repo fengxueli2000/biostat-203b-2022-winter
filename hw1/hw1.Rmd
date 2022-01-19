@@ -34,7 +34,11 @@ This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-
 
  **certification**
  
-![Image Title](/home/lifengxue2000/R/certi.pdf){width=100%}.
+ <https://www.citiprogram.org/verify/?k1676b360-e37f-4950-bc0c-b4ddf9a042ce-46526382>
+ 
+![certification](/home/lifengxue2000/R/certi.pdf){width=100%}.
+
+![avatar](/home/lifengxue2000/prove.png)
 
 ## Q3. Linux Shell Commands
 
