@@ -1,8 +1,10 @@
 ---
 title: "Biostat 203B Homework 1"
-author: Fengxue Li
+author: "Fengxue Li"
 subtitle: Due Jan 21 @ 11:59PM
-output: html_document
+output:
+  html_document: default
+  pdf_document: default
 ---
 
 ```{r setup, include=FALSE}
@@ -32,15 +34,14 @@ sessionInfo()
 
 This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-iv.mit.edu), a freely accessible critical care database developed by the MIT Lab for Computational Physiology. Follow the instructions at <https://mimic.mit.edu/docs/gettingstarted/> to (1) complete the CITI `Data or Specimens Only Research` course and (2) obtain the PhysioNet credential for using the MIMIC-IV data. Display the verification links to your completion report and completion certificate here. (Hint: The CITI training takes a couple hours and the PhysioNet credentialing takes a couple days; do not leave it to the last minute.)
 
- **certification**
+ **report**
  
  <https://www.citiprogram.org/verify/?k1676b360-e37f-4950-bc0c-b4ddf9a042ce-46526382>
  
-![certification](/home/lifengxue2000/R/wintwe/hw1/certi.pdf){width=100%}.
+**certification**
+(https://www.citiprogram.org/verify/?w2a716e01-f093-4bb4-b986-92e71915667b-46526382)
 
-**certification from PhysioNet**
 
-![](/home/lifengxue2000/R/wintwe/hw1/prove.png)
 
 ## Q3. Linux Shell Commands
 
@@ -97,7 +98,7 @@ Display the number of lines in each data file using a similar loop.
 ```{bash}
 for datafile in /mnt/mimiciv/1.0/core/*.gz
   do
-    wc -l $datafile
+   zcat $datafile | wc -l 
   done
 
 ```
@@ -132,6 +133,7 @@ there are 256879 unique string in the subject_id column (including "subject_id" 
 variable admission_type
 ```{bash}
 cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | awk -F',' '{print $6}' | sort |uniq -c
 zcat admissions.csv.gz | awk -F',' '{print $6}' | sort -u |wc -l
 ```
 
@@ -141,14 +143,16 @@ variable admission_location
 
 ```{bash}
 cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | awk -F',' '{print $7}' | sort |uniq -c
 zcat admissions.csv.gz | awk -F',' '{print $7}' | sort -u |wc -l
 ```
 
-there are **12** admission location in this fata file
+there are **12** admission location in this data file
 
 variable insurance
 ```{bash}
 cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | awk -F',' '{print $9}' | sort |uniq -c
 zcat admissions.csv.gz | awk -F',' '{print $9}' | sort -u |wc -l
 ```
 there are **3** admission location in this fata file
@@ -157,6 +161,7 @@ variable ethnicity
 
 ```{bash}
 cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | awk -F',' '{print $12}' | sort |uniq -c
 zcat admissions.csv.gz | awk -F',' '{print $12}' | sort -u |wc -l
 ```
 
