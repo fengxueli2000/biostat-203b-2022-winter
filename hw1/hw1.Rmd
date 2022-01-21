@@ -273,6 +273,7 @@ hostname
 it shows the hostname of the computer
 
 ```{bash}
+pwd
 arch
 ```
 

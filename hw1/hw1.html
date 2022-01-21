@@ -387,17 +387,13 @@ do
   grep -o $char pg42671.txt | wc -l
 done</code></pre>
 <pre><code>## Elizabeth:
-## grep: pg42671.txt: No such file or directory
-## 0
+## 634
 ## Jane:
-## grep: pg42671.txt: No such file or directory
-## 0
+## 294
 ## Lydia:
-## grep: pg42671.txt: No such file or directory
-## 0
+## 170
 ## Darcy:
-## grep: pg42671.txt: No such file or directory
-## 0</code></pre>
+## 417</code></pre>
 <p><code>wget -nc</code> means if the file is downloaded more than once in the same directory, the former file will be overwritten.</p>
 <ol start="2" style="list-style-type: decimal">
 <li>What’s the difference between the following two commands?</li>
@@ -425,12 +421,17 @@ head -n &quot;$2&quot; &quot;$1&quot; | tail -n &quot;$3&quot;</code></pre>
 <p>use <code>chmod</code> make the file executable by the owner</p>
 <pre class="bash"><code>chmod u+x middle.sh
 ls -l</code></pre>
-<pre><code>## total 756
-## -rw-rw-r--. 1 lifengxue2000 lifengxue2000 756361 Jan 21 01:48 hw1.html
-## -rw-rw-r--. 1 lifengxue2000 lifengxue2000  11569 Jan 21 04:41 hw1.Rmd
-## -rwxrwxr-x. 1 lifengxue2000 lifengxue2000    137 Jan 21 01:48 middle.sh</code></pre>
+<pre><code>## total 1468
+## -rw-rw-r--. 1 lifengxue2000 lifengxue2000 755112 Jan 21 05:24 hw1.html
+## -rw-rw-r--. 1 lifengxue2000 lifengxue2000  11573 Jan 21 05:24 hw1.Rmd
+## -rwxrwxr-x. 1 lifengxue2000 lifengxue2000    138 Jan 21 06:40 middle.sh
+## -rw-rw-r--. 1 lifengxue2000 lifengxue2000 725060 Jan 19 11:49 pg42671.txt</code></pre>
 <pre class="bash"><code>./middle.sh pg42671.txt 20 5</code></pre>
-<pre><code>## head: cannot open ‘pg42671.txt’ for reading: No such file or directory</code></pre>
+<pre><code>## 
+## Author: Jane Austen
+## 
+## Editor: R. W. (Robert William) Chapman
+## </code></pre>
 <p><code>&quot;$1&quot;</code>, <code>&quot;$2&quot;</code>, and <code>&quot;$3&quot;</code> are the parameters. The output of the command is the 16-20 lines of pg42671.txt file(Pride and Prejudice),the command first select the first 20( parameter <code>&quot;$2&quot;</code>)lines of pg42671.txt file (parameter <code>&quot;$1&quot;</code>),then the output be piped and select the last 5(parameter <code>&quot;$3&quot;</code>) lines from the first output. The final output is the author and edition of the book</p>
 <p>The first line of the shell script meaning that the script should always be run with bash</p>
 <div id="q5.-more-fun-with-linux" class="section level3">
@@ -491,19 +492,21 @@ ls -l</code></pre>
 ## 24 25 26 27 28 29 30</code></pre>
 <p><code>cal 9 1752</code> is calendar in september 1752</p>
 <pre class="bash"><code>date</code></pre>
-<pre><code>## Fri Jan 21 04:41:47 UTC 2022</code></pre>
+<pre><code>## Fri Jan 21 06:41:20 UTC 2022</code></pre>
 <p><code>date</code> is today’s date and time</p>
 <pre class="bash"><code>hostname</code></pre>
 <pre><code>## biostat-203b-teaching-server</code></pre>
 <p>it shows the hostname of the computer</p>
-<pre class="bash"><code>arch</code></pre>
-<pre><code>## x86_64</code></pre>
+<pre class="bash"><code>pwd
+arch</code></pre>
+<pre><code>## /home/lifengxue2000/R/wintwe/hw1
+## x86_64</code></pre>
 <p>is used to find the computer’s architecture type</p>
 <pre class="bash"><code>uname -a</code></pre>
 <pre><code>## Linux biostat-203b-teaching-server 3.10.0-1160.49.1.el7.x86_64 #1 SMP Tue Nov 30 15:51:32 UTC 2021 x86_64 x86_64 x86_64 GNU/Linux</code></pre>
 <p>this command print kernal name, hostname, kernal release, kernal version, machine hardware name, operating system name</p>
 <pre class="bash"><code>uptime</code></pre>
-<pre><code>##  04:41:47 up 18 days,  4:15,  5 users,  load average: 0.79, 0.50, 0.36</code></pre>
+<pre><code>##  06:41:20 up 18 days,  6:14,  5 users,  load average: 0.76, 0.47, 0.44</code></pre>
 <p><code>uptime</code> shows current time, how long the system is active, number of users currently logged into, and the load time for the past 1, 5 and 15 minutes respectively</p>
 <pre class="bash"><code>who am i</code></pre>
 <p>the username of the computer. because we are not the teaching servers owner, so the command does show anything.</p>
@@ -512,31 +515,31 @@ ls -l</code></pre>
 ## tomokiokuno0528 pts/3        2022-01-10 23:43 (42.166.94.34.bc.googleusercontent.com)
 ## maschepps pts/6        2022-01-17 19:33 (74.213.228.243)
 ## capj245  pts/13       2022-01-21 03:54 (s-164-67-232-61.resnet.ucla.edu)
-## tokramm  pts/18       2022-01-21 04:31 (76.82.34.63)</code></pre>
+## tokramm  pts/18       2022-01-21 05:07 (76.82.34.63)</code></pre>
 <p>shows users currently logged in to UNIX system</p>
 <pre class="bash"><code>w</code></pre>
-<pre><code>##  04:41:47 up 18 days,  4:15,  5 users,  load average: 0.79, 0.50, 0.36
+<pre><code>##  06:41:20 up 18 days,  6:14,  5 users,  load average: 0.76, 0.47, 0.44
 ## USER     TTY      FROM             LOGIN@   IDLE   JCPU   PCPU WHAT
 ## tomokiok pts/1    42.166.94.34.bc. 11Jan22 10days  0.01s  0.01s -bash
-## tomokiok pts/3    42.166.94.34.bc. 10Jan22 10days  1.13s  0.95s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
+## tomokiok pts/3    42.166.94.34.bc. 10Jan22 10days  1.15s  0.97s ssh -i /home/tomokiokuno0528/.ssh/id_rsa tomokiokuno0528@server.ucla-biostat-203b.com
 ## maschepp pts/6    74.213.228.243   Mon19    3days  0.03s  0.03s -bash
-## capj245  pts/13   s-164-67-232-61. 03:54   46:43   0.01s  0.01s -bash
-## tokramm  pts/18   76.82.34.63      04:31    2:19   0.01s  0.01s -bash</code></pre>
+## capj245  pts/13   s-164-67-232-61. 03:54    2:46m  0.01s  0.01s -bash
+## tokramm  pts/18   76.82.34.63      05:07    1:33m  0.01s  0.01s -bash</code></pre>
 <p><code>w</code> command shows uptime and show is logged in and what did they do</p>
 <pre class="bash"><code>id</code></pre>
 <pre><code>## uid=1021(lifengxue2000) gid=1023(lifengxue2000) groups=1023(lifengxue2000) context=system_u:system_r:initrc_t:s0</code></pre>
 <p><code>id</code> command is used to see the user id and group id</p>
 <pre class="bash"><code>last | head</code></pre>
-<pre><code>## tokramm  pts/18       76.82.34.63      Fri Jan 21 04:31   still logged in   
+<pre><code>## tokramm  pts/18       76.82.34.63      Fri Jan 21 05:07   still logged in   
+## tokramm  pts/18       76.82.34.63      Fri Jan 21 04:58 - 05:02  (00:04)    
+## blei001  pts/18       cpe-76-171-0-146 Fri Jan 21 04:56 - 04:56  (00:00)    
+## tokramm  pts/18       76.82.34.63      Fri Jan 21 04:53 - 04:54  (00:00)    
+## tokramm  pts/18       76.82.34.63      Fri Jan 21 04:31 - 04:53  (00:21)    
 ## capj245  pts/13       s-164-67-232-61. Fri Jan 21 03:54   still logged in   
 ## capj245  pts/13       s-164-67-232-61. Fri Jan 21 03:45 - 03:49  (00:04)    
 ## capj245  pts/13       s-164-67-232-61. Fri Jan 21 03:36 - 03:38  (00:01)    
 ## yuyuanli pts/30       149.142.103.176  Fri Jan 21 01:13 - 01:14  (00:00)    
-## huazhou  pts/7        108-64-58-205.li Fri Jan 21 01:03 - 01:52  (00:48)    
-## ritazxca pts/26       42.166.94.34.bc. Fri Jan 21 00:43 - 02:16  (01:33)    
-## ritazxca pts/24       42.166.94.34.bc. Fri Jan 21 00:32 - 02:16  (01:43)    
-## ritazxca pts/23       42.166.94.34.bc. Fri Jan 21 00:31 - 02:16  (01:44)    
-## ritazxca pts/21       42.166.94.34.bc. Fri Jan 21 00:31 - 02:16  (01:44)</code></pre>
+## huazhou  pts/7        108-64-58-205.li Fri Jan 21 01:03 - 01:52  (00:48)</code></pre>
 <p><code>last</code> command in Linux is used to display the list of all the users logged in and out, <code>last | head</code> shows the first few lines of the list</p>
 <pre class="bash"><code>echo {con,pre}{sent,fer}{s,ed}</code></pre>
 <pre><code>## consents consented confers confered presents presented prefers prefered</code></pre>
@@ -544,8 +547,8 @@ ls -l</code></pre>
 <pre class="bash"><code>time sleep 5</code></pre>
 <pre><code>## 
 ## real 0m5.001s
-## user 0m0.001s
-## sys  0m0.000s</code></pre>
+## user 0m0.000s
+## sys  0m0.001s</code></pre>
 <p>dely the execute time for 5 seconds</p>
 <pre class="bash"><code>history | tail</code></pre>
 <p>it shows the last few lines of the history.</p>
