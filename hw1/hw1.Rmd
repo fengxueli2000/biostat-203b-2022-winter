@@ -39,7 +39,8 @@ This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-
  <https://www.citiprogram.org/verify/?k1676b360-e37f-4950-bc0c-b4ddf9a042ce-46526382>
  
 **certification**
-(https://www.citiprogram.org/verify/?w2a716e01-f093-4bb4-b986-92e71915667b-46526382)
+
+<https://www.citiprogram.org/verify/?w2a716e01-f093-4bb4-b986-92e71915667b-46526382>
 
 
 
@@ -74,13 +75,13 @@ CSV.GZ is a CSV file compressed. CSV file is very big, so it be compressed to be
 
 **solution**
 
-zcat command can be used to view the compressed file without uncompressing that file.
+`zcat` command can be used to view the compressed file without uncompressing that file.
 
-zgrep command can be used to search inside a compressed file. zegrep is like grep command in uncompressed file 
+`zgrep` command can be used to search inside a compressed file. `zegrep` is like `grep` command in uncompressed file 
 
-zless is used to read gz file and paginate it. zless is like less in uncompressed file 
+`zless` is used to read gz file and paginate it. `zless` is like `less` in uncompressed file 
 
-zmore is used to read gz file and paginate it. zmore is like more in uncompressed file 
+`zmore` is used to read gz file and paginate it. `zmore` is like `more` in uncompressed file 
 
 4. What's the output of following bash script?
     ```{bash, eval=F}
@@ -194,7 +195,7 @@ do
 done
 ```
 
-wget -nc means if the file is downloaded more than once in the same directory, the former file will be overwritten.
+`wget -nc` means if the file is downloaded more than once in the same directory, the former file will be overwritten.
 
 2. What's the difference between the following two commands?
 
@@ -249,21 +250,21 @@ Try following commands in Bash and interpret the results: `cal`, `cal 2021`, `ca
 ```{bash}
 cal
 ```
-cal is today's date showed in calendar
+`cal` is today's date showed in calendar
 ```{bash}
 cal 2021
 ```
-cal 2021 is calendar in 2021
+`cal 2021` is calendar in 2021
 
 ```{bash}
 cal 9 1752
 ```
-cal 9 1752 is calendar in september 1752
+`cal 9 1752` is calendar in september 1752
 
 ```{bash}
 date
 ```
-date is today's date and time
+`date` is today's date and time
 
 ```{bash}
 hostname
@@ -284,13 +285,15 @@ this command print kernal name, hostname, kernal release, kernal version, machin
 ```{bash}
 uptime
 ```
-uptime shows current time, how long the system is active, number of users currently logged into, and the load time for the past 1, 5 and 15 minutes respectively
+`uptime` shows current time, how long the system is active, number of users currently 
+logged into, and the load time for the past 1, 5 and 15 minutes respectively
 
 ```{bash}
-whoami
+who am i
 ```
 
-username of the current user
+the username of the computer. because we are not the teaching servers owner, so the command
+does show anything. 
 
 ```{bash}
 who
@@ -301,13 +304,13 @@ shows users currently logged in to UNIX system
 w
 ```
 
-w command shows uptime and show is logged in and what did they do
+`w` command shows uptime and show is logged in and what did they do
 
 ```{bash}
 id
 ```
 
-id command is used to see the user id and group id
+`id` command is used to see the user id and group id
 
 ```{bash}
 last | head
@@ -329,4 +332,4 @@ time sleep 5
 history | tail
 ```
 
-it shows the last few lines of the history
+it shows the last few lines of the history. 
