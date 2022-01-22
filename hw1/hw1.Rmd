@@ -43,6 +43,10 @@ This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-
 <https://www.citiprogram.org/verify/?w2a716e01-f093-4bb4-b986-92e71915667b-46526382>
 
 
+![physionet](/home/lifengxue2000/R/wintwe/hw1/physionet1.png)
+
+
+
 
 ## Q3. Linux Shell Commands
 
@@ -121,12 +125,14 @@ zcat admissions.csv.gz | wc -l
 
 there are **523741** lines in the file data, including the head
 
+
 ```{bash}
 cd /mnt/mimiciv/1.0/core
-zcat admissions.csv.gz | awk -F',' '{print $1}' | sort -u |wc -l
+zcat admissions.csv.gz | awk -F ',' 'NR!=1 { print $1 }' | sort -u | wc -l
 ```
 
-there are 256879 unique string in the subject_id column (including "subject_id" and patient id), so the there are 256879-1 = **256878** unique patient in the file
+there are  **256878** unique patient in the file
+
 
 6. What are the possible values taken by each of the variable `admission_type`, `admission_location`, `insurance`, and `ethnicity`? Also report the count for each unique value of these variables. (Hint: combine Linux commands `zcat`, `head`/`tail`, `awk`, `uniq -c`, `wc`, and so on.)
 
@@ -135,18 +141,18 @@ there are 256879 unique string in the subject_id column (including "subject_id" 
 variable admission_type
 ```{bash}
 cd /mnt/mimiciv/1.0/core
-zcat admissions.csv.gz | awk -F',' '{print $6}' | sort |uniq -c
-zcat admissions.csv.gz | awk -F',' '{print $6}' | sort -u |wc -l
+zcat admissions.csv.gz | awk -F ',' 'NR!=1 { print $6 }' | sort | uniq -c
+zcat admissions.csv.gz | awk -F ',' 'NR!=1 { print $6 }' | sort -u | wc -l
 ```
 
-there are **9** admission type in this fata file
+there are **9** admission type in this data file
 
 variable admission_location
 
 ```{bash}
 cd /mnt/mimiciv/1.0/core
-zcat admissions.csv.gz | awk -F',' '{print $7}' | sort |uniq -c
-zcat admissions.csv.gz | awk -F',' '{print $7}' | sort -u |wc -l
+zcat admissions.csv.gz | awk -F ',' 'NR!=1 { print $7 }' | sort | uniq -c
+zcat admissions.csv.gz | awk -F ',' 'NR!=1 { print $7 }' | sort -u | wc -l
 ```
 
 there are **12** admission location in this data file
@@ -154,8 +160,8 @@ there are **12** admission location in this data file
 variable insurance
 ```{bash}
 cd /mnt/mimiciv/1.0/core
-zcat admissions.csv.gz | awk -F',' '{print $9}' | sort |uniq -c
-zcat admissions.csv.gz | awk -F',' '{print $9}' | sort -u |wc -l
+zcat admissions.csv.gz | awk -F ',' 'NR!=1 { print $9 }' | sort | uniq -c
+zcat admissions.csv.gz | awk -F ',' 'NR!=1 { print $9 }' | sort -u | wc -l
 ```
 there are **3** admission location in this fata file
 
@@ -167,6 +173,12 @@ zcat admissions.csv.gz | awk -F',' '{print $12}' | sort |uniq -c
 zcat admissions.csv.gz | awk -F',' '{print $12}' | sort -u |wc -l
 ```
 
+```{bash}
+cd /mnt/mimiciv/1.0/core
+zcat admissions.csv.gz | awk -F ',' 'NR!=1 { print $12 }' | sort | uniq -c
+zcat admissions.csv.gz | awk -F ',' 'NR!=1 { print $12 }' | sort -u | wc -l
+```
+
 there are **8** admission location in this fata file
 
 ## Q4. Who's popular in Price and Prejudice
@@ -176,7 +188,7 @@ there are **8** admission location in this fata file
     wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
     ```
 Explain what `wget -nc` does. Do **not** put this text file `pg42671.txt` in Git. Complete the following loop to tabulate the number of times each of the four characters is mentioned using Linux commands.
-    ```{bash, eval=FALSE}
+    ```{bash}
     wget -nc http://www.gutenberg.org/cache/epub/42671/pg42671.txt
     for char in Elizabeth Jane Lydia Darcy
     do
@@ -328,6 +340,10 @@ this command gives us the combination of all possible words
 ```{bash}
 time sleep 5
 ```
+
+
+delay the execute time for 5 seconds
+
 ```{bash}
 history | tail
 ```
