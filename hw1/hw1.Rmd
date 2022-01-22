@@ -42,6 +42,8 @@ This exercise (and later in this course) uses the [MIMIC-IV data](https://mimic-
 
 <https://www.citiprogram.org/verify/?w2a716e01-f093-4bb4-b986-92e71915667b-46526382>
 
+![physionet](/home/lifengxue2000/R/wintwe/hw1/physionet.png)
+
 
 
 ## Q3. Linux Shell Commands
