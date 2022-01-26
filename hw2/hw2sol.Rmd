@@ -114,7 +114,17 @@ system(
 
 1. Import `admissions.csv.gz` as a tibble `admissions_tble`.
 
+```{r}
+admissions_tble <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz")
+```
+
+
 2. Let's only keep the admissions that have a match in `icustays_tble` according to `subject_id` and `hadmi_id`.
+
+```{r}
+left_join(icustays_tble,admissions_tble,by = c("subject_id", "hadm_id"))
+```
+
 
 3. Summarize the following variables by graphics. 
 
