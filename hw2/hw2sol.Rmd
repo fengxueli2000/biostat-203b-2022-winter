@@ -44,6 +44,19 @@ Which function is fastest? Is there difference in the (default) parsed data type
 
 For later questions, we stick to the tidyverse.
 
+```{r}
+#use `read.csv` in base R
+system.time(read.csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+#use `read_csv` in tidyverse
+system.time(read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+#use `fread` in data.table package
+system.time(fread("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+```
+
+`fread` is the fastest 
+
+`read.csv`read tabular data into R
+
 ## Q2. ICU stays
 
 `icustays.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/icu/icustays/>) contains data about Intensive Care Units (ICU) stays. The first 10 lines are
@@ -60,9 +73,30 @@ system(
 
 1. Import `icustatys.csv.gz` as a tibble `icustays_tble`. 
 
+```{r}
+icustays_tble <- read_csv("/mnt/mimiciv/1.0/icu/icustays.csv.gz")
+```
+
+
 2. How many unique `subject_id`? Can a `subject_id` have multiple ICU stays? 
 
+```{r}
+icustays_tble %>% distinct(subject_id)
+icustays_tble %>% distinct(intime)
+```
+
+there are 53150 unique subject id and 76535 unique ICU time stays. Because the there are more time stays than subject id, so subject id can have multiple time stays.
+
+
 3. For each `subject_id`, let's only keep the first ICU stay in the tibble `icustays_tble`.
+
+```{r}
+icustays_tble %>%
+  group_by(subject_id) %>%
+  arrange(subject_id) %>%
+  filter(row_number()==1)
+```
+
 
 ## Q3. `admission` data
 
