@@ -122,17 +122,64 @@ admissions_tble <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz")
 2. Let's only keep the admissions that have a match in `icustays_tble` according to `subject_id` and `hadmi_id`.
 
 ```{r}
-left_join(icustays_tble,admissions_tble,by = c("subject_id", "hadm_id"))
+admissions_tble <- admissions_tble %>% 
+  left_join(icustays_tble,admissions_tble,by = c("subject_id", "hadm_id"))
+```
+
+**solution**
+3. Summarize the following variables by graphics. 
+
+- admission year 
+
+```{r}
+year_sum <- mutate(admissions_tble,
+                     year =year(ymd_hms(admissions_tble$admittime))) %>%
+  ggplot(aes(x = year))+
+  geom_bar()
+year_sum
 ```
 
 
-3. Summarize the following variables by graphics. 
-
-- admission year  
 - admission month  
+
+```{r}
+month_sum <- mutate(admissions_tble,
+                     month =month(ymd_hms(admissions_tble$admittime))) %>%
+  ggplot(aes(x = month))+
+  geom_bar()
+month_sum
+```
+
 - admission month day  
+
+```{r}
+monthday_sum <- mutate(admissions_tble,
+                     monthday =mday(ymd_hms(admissions_tble$admittime))) %>%
+  ggplot(aes(x = monthday))+
+  geom_bar()
+monthday_sum
+```
+
 - admission week day  
+
+```{r}
+weekday_sum <- mutate(admissions_tble,
+                     monthday =wday(ymd_hms(admissions_tble$admittime))) %>%
+  ggplot(aes(x = monthday))+
+  geom_bar()
+weekday_sum
+```
+
 - admission hour (anything unusual?)  
+
+```{r}
+hour_sum <- mutate(admissions_tble,
+                     hour =hour(ymd_hms(admissions_tble$admittime))) %>%
+  ggplot(aes(x = hour))+
+  geom_bar()
+hour_sum
+```
+
 
 ## Q4. `patients` data
 
@@ -151,7 +198,7 @@ system(
 1. Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/core/patients/>) as a tibble `patients_tble` and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).
 
 ```{r}
-admissions_tble <- read_csv("/mnt/mimiciv/1.0//core/patients.csv.gz") %>%
+admissions_tble <- read_csv("/mnt/mimiciv/1.0//core/patients.csv.gz") 
 ```
 
 
