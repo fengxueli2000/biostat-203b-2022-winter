@@ -198,11 +198,28 @@ system(
 1. Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/core/patients/>) as a tibble `patients_tble` and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).
 
 ```{r}
-admissions_tble <- read_csv("/mnt/mimiciv/1.0//core/patients.csv.gz") 
+patients_tble <- read_csv("/mnt/mimiciv/1.0//core/patients.csv.gz") %>%
+  left_join(icustays_tble,admissions_tble,by = c("subject_id"))
 ```
 
-
 2. Summarize variables `gender` and `anchor_age`, and explain any patterns you see.
+
+```{r}
+table(patients_tble$gender)
+prop.table(table(patients_tble$gender))
+gender_sum <- ggplot(patients_tble, aes(x = gender)) +
+        geom_bar()
+gender_sum
+```
+
+we can see from the figure and table that men is a little more than women
+
+```{r}
+age_sum <- ggplot(patients_tble, aes(x = anchor_age)) +
+        geom_bar()
+age_sum
+```
+
 
 ## Q5. Lab results
 
