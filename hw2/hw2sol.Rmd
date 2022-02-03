@@ -46,11 +46,11 @@ For later questions, we stick to the tidyverse.
 
 ```{r}
 #use `read.csv` in base R
-system.time(read.csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+#system.time(read.csv(str_c(mimic_path, "/core/admissions.csv.gz")))
 #use `read_csv` in tidyverse
-system.time(read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+system.time(read_csv(str_c(mimic_path, "/core/admissions.csv.gz")))
 #use `fread` in data.table package
-system.time(fread("/mnt/mimiciv/1.0/core/admissions.csv.gz"))
+system.time(fread(str_c(mimic_path, "/core/admissions.csv.gz")))
 ```
 
 `fread` is the fastest 
@@ -74,7 +74,7 @@ system(
 1. Import `icustatys.csv.gz` as a tibble `icustays_tble`. 
 
 ```{r}
-icustays_tble <- read_csv("/mnt/mimiciv/1.0/icu/icustays.csv.gz")
+icustays_tble <- read_csv(str_c(mimic_path,  "/icu/icustays.csv.gz"))
 ```
 
 
@@ -115,16 +115,18 @@ system(
 1. Import `admissions.csv.gz` as a tibble `admissions_tble`.
 
 ```{r}
-admissions_tble <- read_csv("/mnt/mimiciv/1.0/core/admissions.csv.gz")
+admissions_tble <- read_csv(str_c(mimic_path,"/core/admissions.csv.gz"))
 ```
 
 
 2. Let's only keep the admissions that have a match in `icustays_tble` according to `subject_id` and `hadmi_id`.
 
 ```{r}
-admissions_tble <- admissions_tble %>% 
-  left_join(icustays_tble,admissions_tble,by = c("subject_id", "hadm_id"))
+admissions_tble1 <- admissions_tble %>%
+  semi_join(icustays_tble, by = c("subject_id")) %>%
+  filter(hadm_id %in% icustays_tble$hadm_id)  
 ```
+
 
 **solution**
 3. Summarize the following variables by graphics. 
@@ -198,8 +200,8 @@ system(
 1. Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/core/patients/>) as a tibble `patients_tble` and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).
 
 ```{r}
-patients_tble <- read_csv("/mnt/mimiciv/1.0//core/patients.csv.gz") %>%
-  left_join(icustays_tble,admissions_tble,by = c("subject_id"))
+patients_tble <- read_csv(str_c(mimic_path,"/core/patients.csv.gz")) %>%
+semi_join(icustays_tble, by = c("subject_id")) 
 ```
 
 2. Summarize variables `gender` and `anchor_age`, and explain any patterns you see.
@@ -248,12 +250,66 @@ system(
 
 1. Find how many rows are in `labevents.csv.gz`.
 
+```{r}
+labevents_tble <- 
+  read_csv(str_c(mimic_path, "/hosp/labevents_filtered_itemid.csv.gz"),
+           col_select = c(subject_id, itemid,charttime,valuenum),
+           col_types = cols_only(subject_id = col_double(), 
+                                 itemid = col_double(), 
+                                 charttime = col_datetime(), 
+                                 valuenum = col_double()),
+           lazy = TRUE)
+```
+
+30198826
+
 2. We are interested in the lab measurements of creatinine (50912), potassium (50971), sodium (50983), chloride (50902), bicarbonate (50882), hematocrit (51221), white blood cell count (51301), glucose (50931), magnesium (50960), and calcium (50893). Retrieve a subset of `labevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `labevents_tble`. 
 
     Hint: `labevents.csv.gz` is a data file too big to be read in by the `read_csv` function in its default setting. Utilize the `col_select` and `lazy` options in the `read_csv` function to reduce the memory burden.
 
+```{r}
+dlabitems_tble <- read_csv(str_c(mimic_path, "/hosp/d_labitems.csv.gz"))
+labevents_tble <-  semi_join(labevents_tble,icustays_tble, 
+                             by = c("subject_id")) %>%
+  filter(itemid %in% dlabitems_tble$itemid) 
+```
+
+
 3. Further restrict `labevents_tble` to the first lab measurement during the ICU stay. 
+
+```{r}
+labevents_tble <- left_join(labevents_tble,dlabitems_tble, by = c("itemid"))  
+labevents_tble <- left_join(labevents_tble, icustays_tble, 
+                            by = c("subject_id")) %>% 
+  filter(charttime >= intime) %>% 
+  group_by(subject_id) %>% 
+  arrange(charttime) %>% 
+  slice_head() %>% 
+  ungroup()
+```
+
+52544
+
 4. Summarize the lab measurements by appropriate numerics and graphics. 
+
+```{r}
+labevents_tble %>% 
+  group_by(itemid) %>% 
+  summarise(mean_valuenum = mean(valuenum, na.rm = TRUE),
+            number_valuenum = n(),
+            median_valuenum = median(valuenum, na.rm = TRUE),
+            sd_valuenum = sd(valuenum, na.rm = TRUE))
+category_barchart <- ggplot(labevents_tble, aes(x = category)) +
+        geom_bar()
+category_barchart
+
+label_barchart <- ggplot(labevents_tble, aes(x = label)) +
+        geom_bar()
+label_barchart
+
+```
+
+
 
 ## Q6. Vitals from charted events
 
@@ -280,9 +336,50 @@ system(
 
 1. We are interested in the vitals for ICU patients: heart rate (220045), mean non-invasive blood pressure (220181), systolic non-invasive blood pressure (220179), body temperature in Fahrenheit (223761), and respiratory rate (220210). Retrieve a subset of `chartevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `chartevents_tble`.
 
+```{r}
+chartevents_tble <- 
+  read_csv(str_c(mimic_path, "/icu/chartevents_filtered_itemid.csv.gz"),
+           col_select = c(subject_id, itemid,charttime,valuenum),
+           col_types = cols_only(subject_id = col_double(), 
+                                 itemid = col_double(), 
+                                 charttime = col_datetime(), 
+                                 valuenum = col_double()),
+           lazy = TRUE)
+```
+
+```{r}
+d_items <- read_csv(str_c(mimic_path, "/icu/d_items.csv.gz"))
+chartevents_tble <-  semi_join(chartevents_tble,icustays_tble, 
+                             by = c("subject_id")) %>%
+  filter(itemid %in% d_items$itemid) 
+```
+
 2. Further restrict `chartevents_tble` to the first vital measurement during the ICU stay. 
 
+```{r}
+icu_subset <- icustays_tble %>% 
+  select(subject_id,intime)
+chartevents_tble <- left_join(chartevents_tble,icu_subset, 
+                            by = c("subject_id")) %>% 
+  filter(charttime >= intime) %>% 
+  group_by(subject_id) %>% 
+  arrange(charttime) %>% 
+  slice_head() %>% 
+  ungroup()
+```
+
+53150
+
 3. Summarize these vital measurements by appropriate numerics and graphics. 
+
+```{r}
+chartevents_tble %>% 
+  group_by(itemid) %>% 
+  summarise(mean_valuenum = mean(valuenum, na.rm = TRUE),
+            number_valuenum = n(),
+            median_valuenum = median(valuenum, na.rm = TRUE),
+            sd_valuenum = sd(valuenum, na.rm = TRUE))
+```
 
 ## Q7. Putting things together
 
@@ -299,11 +396,29 @@ and columns contain at least following variables
 - first vital measurements during ICU stay
 - an indicator variable `thirty_day_mort` whether the patient died within 30 days of hospital admission (30 day mortality)
 
+```{r}
+mimic_icu_cohort <- 
+  inner_join(icustays_tble, admissions_tble, by = "subject_id") %>% 
+  inner_join(patients_tble,by = "subject_id") %>% 
+  inner_join(labevents_tble,by = "subject_id") %>% 
+  inner_join(chartevents_tble,by = "subject_id") %>% 
+  mutate(thirty_day_mort = (deathtime - admittime) < 30)  
+```
+
+
+
 ## Q8. Exploratory data analysis (EDA)
 
 Summarize following information using appropriate numerics or graphs.
 
 - `thirty_day_mort` vs demographic variables (ethnicity, language, insurance, marital_status, gender, age at hospital admission)
+
+```{r}
+
+```
+
+
+
 
 - `thirty_day_mort` vs first lab measurements
 
