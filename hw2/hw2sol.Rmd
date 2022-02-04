@@ -46,7 +46,7 @@ For later questions, we stick to the tidyverse.
 
 ```{r}
 #use `read.csv` in base R
-#system.time(read.csv(str_c(mimic_path, "/core/admissions.csv.gz")))
+system.time(read.csv(str_c(mimic_path, "/core/admissions.csv.gz")))
 #use `read_csv` in tidyverse
 system.time(read_csv(str_c(mimic_path, "/core/admissions.csv.gz")))
 #use `fread` in data.table package
@@ -74,27 +74,32 @@ system(
 1. Import `icustatys.csv.gz` as a tibble `icustays_tble`. 
 
 ```{r}
-icustays_tble <- read_csv(str_c(mimic_path,  "/icu/icustays.csv.gz"))
+icustays_tble <- read_csv(str_c(mimic_path, "/icu/icustays.csv.gz"))
 ```
 
 
 2. How many unique `subject_id`? Can a `subject_id` have multiple ICU stays? 
 
 ```{r}
-icustays_tble %>% distinct(subject_id)
-icustays_tble %>% distinct(intime)
+icustays_tble_subjectid <- icustays_tble %>% 
+  group_by(subject_id) %>% 
+  distinct(subject_id) 
+icustays_tble_time2 <- icustays_tble %>% 
+  group_by(stay_id) %>% 
+  distinct(stay_id)
 ```
 
-there are 53150 unique subject id and 76535 unique ICU time stays. Because the there are more time stays than subject id, so subject id can have multiple time stays.
+there are 53150 unique subject id and 76540 unique ICU time stays. Because the there are more time stays than subject id, so subject id can have multiple time stays.
 
 
 3. For each `subject_id`, let's only keep the first ICU stay in the tibble `icustays_tble`.
 
 ```{r}
-icustays_tble %>%
-  group_by(subject_id) %>%
-  arrange(subject_id) %>%
-  filter(row_number()==1)
+icustays_tble <- icustays_tble %>% 
+  group_by(subject_id) %>% 
+  arrange(intime) %>% 
+  slice_head(n=1) %>% 
+  print(Inf)
 ```
 
 
@@ -122,7 +127,7 @@ admissions_tble <- read_csv(str_c(mimic_path,"/core/admissions.csv.gz"))
 2. Let's only keep the admissions that have a match in `icustays_tble` according to `subject_id` and `hadmi_id`.
 
 ```{r}
-admissions_tble1 <- admissions_tble %>%
+admissions_tble <- admissions_tble %>%
   semi_join(icustays_tble, by = c("subject_id")) %>%
   filter(hadm_id %in% icustays_tble$hadm_id)  
 ```
@@ -134,52 +139,47 @@ admissions_tble1 <- admissions_tble %>%
 - admission year 
 
 ```{r}
-year_sum <- mutate(admissions_tble,
-                     year =year(ymd_hms(admissions_tble$admittime))) %>%
-  ggplot(aes(x = year))+
+admissions_tble %>%  mutate(admissions_tble,
+                     year = year(ymd_hms(admissions_tble$admittime))) %>%
+  ggplot(mapping = aes(x = year))+
   geom_bar()
-year_sum
 ```
 
 
 - admission month  
 
 ```{r}
-month_sum <- mutate(admissions_tble,
+admissions_tble %>%  mutate(admissions_tble,
                      month =month(ymd_hms(admissions_tble$admittime))) %>%
-  ggplot(aes(x = month))+
+  ggplot(mapping =  aes(x = month))+
   geom_bar()
-month_sum
 ```
 
 - admission month day  
 
 ```{r}
-monthday_sum <- mutate(admissions_tble,
+admissions_tble %>%  mutate(admissions_tble,
                      monthday =mday(ymd_hms(admissions_tble$admittime))) %>%
   ggplot(aes(x = monthday))+
   geom_bar()
-monthday_sum
 ```
 
 - admission week day  
 
 ```{r}
-weekday_sum <- mutate(admissions_tble,
+admissions_tble %>%  mutate(admissions_tble,
                      monthday =wday(ymd_hms(admissions_tble$admittime))) %>%
-  ggplot(aes(x = monthday))+
+  ggplot(mapping =  aes(x = monthday))+
   geom_bar()
-weekday_sum
 ```
 
 - admission hour (anything unusual?)  
 
 ```{r}
-hour_sum <- mutate(admissions_tble,
+admissions_tble %>%  mutate(admissions_tble,
                      hour =hour(ymd_hms(admissions_tble$admittime))) %>%
-  ggplot(aes(x = hour))+
+  ggplot(mapping =  aes(x = hour))+
   geom_bar()
-hour_sum
 ```
 
 
@@ -209,17 +209,15 @@ semi_join(icustays_tble, by = c("subject_id"))
 ```{r}
 table(patients_tble$gender)
 prop.table(table(patients_tble$gender))
-gender_sum <- ggplot(patients_tble, aes(x = gender)) +
-        geom_bar()
-gender_sum
+patients_tble %>% ggplot(mapping = aes(x = gender))+
+  geom_bar()
 ```
 
 we can see from the figure and table that men is a little more than women
 
 ```{r}
-age_sum <- ggplot(patients_tble, aes(x = anchor_age)) +
-        geom_bar()
-age_sum
+patients_tble %>% ggplot(mapping = aes(x = anchor_age))+
+  geom_bar()
 ```
 
 
@@ -268,44 +266,80 @@ labevents_tble <-
     Hint: `labevents.csv.gz` is a data file too big to be read in by the `read_csv` function in its default setting. Utilize the `col_select` and `lazy` options in the `read_csv` function to reduce the memory burden.
 
 ```{r}
-dlabitems_tble <- read_csv(str_c(mimic_path, "/hosp/d_labitems.csv.gz"))
-labevents_tble <-  semi_join(labevents_tble,icustays_tble, 
+itemid <- c(50912, 50971, 50983, 50902, 50882, 51221,
+            51301, 50931, 50960, 50893)
+labevents_tble <- semi_join(labevents_tble,icustays_tble, 
                              by = c("subject_id")) %>%
-  filter(itemid %in% dlabitems_tble$itemid) 
+  filter(itemid %in% itemid) %>% 
+  print(width = Inf)
 ```
 
 
 3. Further restrict `labevents_tble` to the first lab measurement during the ICU stay. 
 
 ```{r}
-labevents_tble <- left_join(labevents_tble,dlabitems_tble, by = c("itemid"))  
-labevents_tble <- left_join(labevents_tble, icustays_tble, 
+icu_subset <- icustays_tble %>% 
+  select(subject_id,intime)
+labevents_tble <- left_join(labevents_tble, icu_subset, 
                             by = c("subject_id")) %>% 
   filter(charttime >= intime) %>% 
-  group_by(subject_id) %>% 
+  group_by(subject_id, itemid) %>% 
   arrange(charttime) %>% 
-  slice_head() %>% 
-  ungroup()
+  slice_head(n=1) %>% 
+  select(subject_id, itemid, valuenum) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = itemid, values_from = valuenum) %>% 
+  print(width = Inf)
+colnames(labevents_tble) <- c("subject_id", "bicarbonate", "calcium",
+                              "chloride", "creatinine", "glucose",
+                              "magnesium", "potassium", "sodium",
+                              "hematocrit", "white_blood_cell")
 ```
 
-52544
+
 
 4. Summarize the lab measurements by appropriate numerics and graphics. 
 
 ```{r}
+summary(labevents_tble)
 labevents_tble %>% 
-  group_by(itemid) %>% 
-  summarise(mean_valuenum = mean(valuenum, na.rm = TRUE),
-            number_valuenum = n(),
-            median_valuenum = median(valuenum, na.rm = TRUE),
-            sd_valuenum = sd(valuenum, na.rm = TRUE))
-category_barchart <- ggplot(labevents_tble, aes(x = category)) +
-        geom_bar()
-category_barchart
-
-label_barchart <- ggplot(labevents_tble, aes(x = label)) +
-        geom_bar()
-label_barchart
+  ggplot(mapping = aes(x = bicarbonate)) +
+  geom_histogram(outlier.shape = NA) 
+labevents_tble %>% 
+  ggplot(mapping = aes(x = calcium)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(0, 15)
+labevents_tble %>% 
+  ggplot(mapping = aes(x = chloride)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(50, 130)
+labevents_tble %>% 
+  ggplot(mapping = aes(x = creatinine)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(-5, 15)
+labevents_tble %>% 
+  ggplot(mapping = aes(x =glucose)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(-20, 600)
+labevents_tble %>% 
+  ggplot(mapping = aes(x = magnesium)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(0, 8)
+labevents_tble %>% 
+  ggplot(mapping = aes(x = potassium)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(2, 10)
+labevents_tble %>% 
+  ggplot(mapping = aes(x = sodium)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(100, 170)
+labevents_tble %>% 
+  ggplot(mapping = aes(x = hematocrit)) +
+  geom_histogram(outlier.shape = NA)
+labevents_tble %>% 
+  ggplot(mapping = aes(x = white_blood_cell)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(-5, 70)
 
 ```
 
@@ -348,24 +382,34 @@ chartevents_tble <-
 ```
 
 ```{r}
-d_items <- read_csv(str_c(mimic_path, "/icu/d_items.csv.gz"))
+itemid <- c(220045, 220181, 220179, 223761, 220210)
 chartevents_tble <-  semi_join(chartevents_tble,icustays_tble, 
                              by = c("subject_id")) %>%
-  filter(itemid %in% d_items$itemid) 
+    filter(itemid %in% itemid) %>% 
+  print(width = Inf)
 ```
+
 
 2. Further restrict `chartevents_tble` to the first vital measurement during the ICU stay. 
 
 ```{r}
 icu_subset <- icustays_tble %>% 
   select(subject_id,intime)
-chartevents_tble <- left_join(chartevents_tble,icu_subset, 
+chartevents_tble <- left_join(chartevents_tble, icu_subset, 
                             by = c("subject_id")) %>% 
   filter(charttime >= intime) %>% 
-  group_by(subject_id) %>% 
+  group_by(subject_id, itemid) %>% 
   arrange(charttime) %>% 
-  slice_head() %>% 
-  ungroup()
+  slice_head(n=1) %>% 
+  select(subject_id, itemid, valuenum) %>% 
+  ungroup() %>% 
+  pivot_wider(names_from = itemid, values_from = valuenum) %>% 
+  print(width = Inf) 
+colnames(chartevents_tble) <- c("subject_id","heart_rate",
+                                "systolic_blood_pressure",
+                                "mean_blood_pressure",
+                                "respiratory_rate",
+                                "body_temperature")
 ```
 
 53150
@@ -373,12 +417,27 @@ chartevents_tble <- left_join(chartevents_tble,icu_subset,
 3. Summarize these vital measurements by appropriate numerics and graphics. 
 
 ```{r}
+summary(chartevents_tble)
 chartevents_tble %>% 
-  group_by(itemid) %>% 
-  summarise(mean_valuenum = mean(valuenum, na.rm = TRUE),
-            number_valuenum = n(),
-            median_valuenum = median(valuenum, na.rm = TRUE),
-            sd_valuenum = sd(valuenum, na.rm = TRUE))
+  ggplot(mapping = aes(x = heart_rate)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(-5, 200)
+chartevents_tble %>% 
+  ggplot(mapping = aes(x = systolic_blood_pressure)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(-5, 220)
+chartevents_tble %>% 
+  ggplot(mapping = aes(x = mean_blood_pressure)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(-5, 200)
+chartevents_tble %>% 
+  ggplot(mapping = aes(x = respiratory_rate)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(-5, 60)
+chartevents_tble %>% 
+  ggplot(mapping = aes(x = body_temperature)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(90, 105)
 ```
 
 ## Q7. Putting things together
@@ -398,10 +457,11 @@ and columns contain at least following variables
 
 ```{r}
 mimic_icu_cohort <- 
-  inner_join(icustays_tble, admissions_tble, by = "subject_id") %>% 
+  inner_join(icustays_tble, admissions_tble, by = "subject_id") %>%
   inner_join(patients_tble,by = "subject_id") %>% 
   inner_join(labevents_tble,by = "subject_id") %>% 
   inner_join(chartevents_tble,by = "subject_id") %>% 
+  filter(anchor_age > 18)
   mutate(thirty_day_mort = (deathtime - admittime) < 30)  
 ```
 
