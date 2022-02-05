@@ -44,6 +44,8 @@ Which function is fastest? Is there difference in the (default) parsed data type
 
 For later questions, we stick to the tidyverse.
 
+**solution**
+
 ```{r}
 #use `read.csv` in base R
 system.time(read.csv(str_c(mimic_path, "/core/admissions.csv.gz")))
@@ -55,8 +57,8 @@ system.time(fread(str_c(mimic_path, "/core/admissions.csv.gz")))
 
 `fread` is the fastest 
 
-`read.csv`read tabular data into R
-
+`read.csv` is data frame , `read_csv` is tibble, `fread` is data.table
+ 
 ## Q2. ICU stays
 
 `icustays.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/icu/icustays/>) contains data about Intensive Care Units (ICU) stays. The first 10 lines are
@@ -73,6 +75,8 @@ system(
 
 1. Import `icustatys.csv.gz` as a tibble `icustays_tble`. 
 
+**solution**
+
 ```{r}
 icustays_tble <- read_csv(str_c(mimic_path, "/icu/icustays.csv.gz"))
 ```
@@ -80,13 +84,17 @@ icustays_tble <- read_csv(str_c(mimic_path, "/icu/icustays.csv.gz"))
 
 2. How many unique `subject_id`? Can a `subject_id` have multiple ICU stays? 
 
+**solution**
+
 ```{r}
-icustays_tble_subjectid <- icustays_tble %>% 
+icustays_tble %>% 
   group_by(subject_id) %>% 
-  distinct(subject_id) 
-icustays_tble_time2 <- icustays_tble %>% 
+  distinct(subject_id) %>% 
+  summarise(count = n())
+icustays_tble %>% 
   group_by(stay_id) %>% 
-  distinct(stay_id)
+  distinct(stay_id) %>% 
+  summarise(count = n())
 ```
 
 there are 53150 unique subject id and 76540 unique ICU time stays. Because the there are more time stays than subject id, so subject id can have multiple time stays.
@@ -94,12 +102,14 @@ there are 53150 unique subject id and 76540 unique ICU time stays. Because the t
 
 3. For each `subject_id`, let's only keep the first ICU stay in the tibble `icustays_tble`.
 
+**solution**
+
 ```{r}
 icustays_tble <- icustays_tble %>% 
   group_by(subject_id) %>% 
   arrange(intime) %>% 
-  slice_head(n=1) %>% 
-  print(Inf)
+  slice_head(n = 1) %>% 
+  print(width = Inf)
 ```
 
 
@@ -119,29 +129,34 @@ system(
 
 1. Import `admissions.csv.gz` as a tibble `admissions_tble`.
 
+**solution**
+
 ```{r}
-admissions_tble <- read_csv(str_c(mimic_path,"/core/admissions.csv.gz"))
+admissions_tble <- read_csv(str_c(mimic_path, "/core/admissions.csv.gz"))
 ```
 
 
 2. Let's only keep the admissions that have a match in `icustays_tble` according to `subject_id` and `hadmi_id`.
 
+**solution**
+
 ```{r}
 admissions_tble <- admissions_tble %>%
-  semi_join(icustays_tble, by = c("subject_id")) %>%
-  filter(hadm_id %in% icustays_tble$hadm_id)  
+  semi_join(icustays_tble, by = c("subject_id", "hadm_id")) %>% 
+  print(width = Inf)
 ```
 
 
-**solution**
 3. Summarize the following variables by graphics. 
+
+**solution**
 
 - admission year 
 
 ```{r}
 admissions_tble %>%  mutate(admissions_tble,
-                     year = year(ymd_hms(admissions_tble$admittime))) %>%
-  ggplot(mapping = aes(x = year))+
+                     year = year(admissions_tble$admittime)) %>%
+  ggplot(mapping = aes(x = year)) +
   geom_bar()
 ```
 
@@ -150,8 +165,8 @@ admissions_tble %>%  mutate(admissions_tble,
 
 ```{r}
 admissions_tble %>%  mutate(admissions_tble,
-                     month =month(ymd_hms(admissions_tble$admittime))) %>%
-  ggplot(mapping =  aes(x = month))+
+                     month = month(admissions_tble$admittime)) %>%
+  ggplot(mapping =  aes(x = month)) +
   geom_bar()
 ```
 
@@ -159,8 +174,8 @@ admissions_tble %>%  mutate(admissions_tble,
 
 ```{r}
 admissions_tble %>%  mutate(admissions_tble,
-                     monthday =mday(ymd_hms(admissions_tble$admittime))) %>%
-  ggplot(aes(x = monthday))+
+                     monthday = mday(admissions_tble$admittime)) %>%
+  ggplot(aes(x = monthday)) +
   geom_bar()
 ```
 
@@ -168,8 +183,8 @@ admissions_tble %>%  mutate(admissions_tble,
 
 ```{r}
 admissions_tble %>%  mutate(admissions_tble,
-                     monthday =wday(ymd_hms(admissions_tble$admittime))) %>%
-  ggplot(mapping =  aes(x = monthday))+
+                     monthday = wday(admissions_tble$admittime)) %>%
+  ggplot(mapping =  aes(x = monthday)) +
   geom_bar()
 ```
 
@@ -177,11 +192,12 @@ admissions_tble %>%  mutate(admissions_tble,
 
 ```{r}
 admissions_tble %>%  mutate(admissions_tble,
-                     hour =hour(ymd_hms(admissions_tble$admittime))) %>%
-  ggplot(mapping =  aes(x = hour))+
+                     hour = hour(admissions_tble$admittime)) %>%
+  ggplot(mapping = aes(x = hour)) +
   geom_bar()
 ```
 
+there are more people in the evening
 
 ## Q4. `patients` data
 
@@ -199,27 +215,34 @@ system(
 
 1. Import `patients.csv.gz` (<https://mimic.mit.edu/docs/iv/modules/core/patients/>) as a tibble `patients_tble` and only keep the patients who have a match in `icustays_tble` (according to `subject_id`).
 
+**solution**
+
 ```{r}
 patients_tble <- read_csv(str_c(mimic_path,"/core/patients.csv.gz")) %>%
-semi_join(icustays_tble, by = c("subject_id")) 
+  semi_join(icustays_tble, by = c("subject_id")) %>% 
+  print(width = Inf)
 ```
 
 2. Summarize variables `gender` and `anchor_age`, and explain any patterns you see.
 
+**solution**
+
 ```{r}
 table(patients_tble$gender)
 prop.table(table(patients_tble$gender))
-patients_tble %>% ggplot(mapping = aes(x = gender))+
+patients_tble %>% ggplot(mapping = aes(x = gender)) +
   geom_bar()
+tapply(patients_tble$anchor_age, patients_tble$gender, summary)
 ```
 
-we can see from the figure and table that men is a little more than women
+we can see from the figure and table that men is a little more than women. The anchor age of female is greater than man.
 
 ```{r}
-patients_tble %>% ggplot(mapping = aes(x = anchor_age))+
+summary(patients_tble$anchor_age)
+patients_tble %>% ggplot(mapping = aes(x = anchor_age)) +
   geom_bar()
 ```
-
+most people are from 50-80
 
 ## Q5. Lab results
 
@@ -251,12 +274,13 @@ system(
 ```{r}
 labevents_tble <- 
   read_csv(str_c(mimic_path, "/hosp/labevents_filtered_itemid.csv.gz"),
-           col_select = c(subject_id, itemid,charttime,valuenum),
+           col_select = c(subject_id, itemid, charttime, valuenum),
            col_types = cols_only(subject_id = col_double(), 
                                  itemid = col_double(), 
                                  charttime = col_datetime(), 
                                  valuenum = col_double()),
-           lazy = TRUE)
+           lazy = TRUE) 
+labevents_tble %>% nrow()
 ```
 
 30198826
@@ -265,10 +289,12 @@ labevents_tble <-
 
     Hint: `labevents.csv.gz` is a data file too big to be read in by the `read_csv` function in its default setting. Utilize the `col_select` and `lazy` options in the `read_csv` function to reduce the memory burden.
 
+**solution**
+
 ```{r}
 itemid <- c(50912, 50971, 50983, 50902, 50882, 51221,
             51301, 50931, 50960, 50893)
-labevents_tble <- semi_join(labevents_tble,icustays_tble, 
+labevents_tble <- semi_join(labevents_tble, icustays_tble, 
                              by = c("subject_id")) %>%
   filter(itemid %in% itemid) %>% 
   print(width = Inf)
@@ -277,15 +303,17 @@ labevents_tble <- semi_join(labevents_tble,icustays_tble,
 
 3. Further restrict `labevents_tble` to the first lab measurement during the ICU stay. 
 
+**solution**
+
 ```{r}
 icu_subset <- icustays_tble %>% 
-  select(subject_id,intime)
+  select(subject_id, intime)
 labevents_tble <- left_join(labevents_tble, icu_subset, 
                             by = c("subject_id")) %>% 
   filter(charttime >= intime) %>% 
   group_by(subject_id, itemid) %>% 
   arrange(charttime) %>% 
-  slice_head(n=1) %>% 
+  slice_head(n = 1) %>% 
   select(subject_id, itemid, valuenum) %>% 
   ungroup() %>% 
   pivot_wider(names_from = itemid, values_from = valuenum) %>% 
@@ -299,6 +327,8 @@ colnames(labevents_tble) <- c("subject_id", "bicarbonate", "calcium",
 
 
 4. Summarize the lab measurements by appropriate numerics and graphics. 
+
+**soultion**
 
 ```{r}
 summary(labevents_tble)
@@ -318,7 +348,7 @@ labevents_tble %>%
   geom_histogram(outlier.shape = NA) +
   xlim(-5, 15)
 labevents_tble %>% 
-  ggplot(mapping = aes(x =glucose)) +
+  ggplot(mapping = aes(x = glucose)) +
   geom_histogram(outlier.shape = NA) +
   xlim(-20, 600)
 labevents_tble %>% 
@@ -370,10 +400,12 @@ system(
 
 1. We are interested in the vitals for ICU patients: heart rate (220045), mean non-invasive blood pressure (220181), systolic non-invasive blood pressure (220179), body temperature in Fahrenheit (223761), and respiratory rate (220210). Retrieve a subset of `chartevents.csv.gz` only containing these items for the patients in `icustays_tble` as a tibble `chartevents_tble`.
 
+**solution**
+
 ```{r}
 chartevents_tble <- 
   read_csv(str_c(mimic_path, "/icu/chartevents_filtered_itemid.csv.gz"),
-           col_select = c(subject_id, itemid,charttime,valuenum),
+           col_select = c(subject_id, itemid, charttime, valuenum),
            col_types = cols_only(subject_id = col_double(), 
                                  itemid = col_double(), 
                                  charttime = col_datetime(), 
@@ -383,29 +415,31 @@ chartevents_tble <-
 
 ```{r}
 itemid <- c(220045, 220181, 220179, 223761, 220210)
-chartevents_tble <-  semi_join(chartevents_tble,icustays_tble, 
+chartevents_tble <- semi_join(chartevents_tble,icustays_tble, 
                              by = c("subject_id")) %>%
-    filter(itemid %in% itemid) %>% 
+  filter(itemid %in% itemid) %>% 
   print(width = Inf)
 ```
 
 
 2. Further restrict `chartevents_tble` to the first vital measurement during the ICU stay. 
 
+**solution**
+
 ```{r}
 icu_subset <- icustays_tble %>% 
-  select(subject_id,intime)
+  select(subject_id, intime)
 chartevents_tble <- left_join(chartevents_tble, icu_subset, 
                             by = c("subject_id")) %>% 
   filter(charttime >= intime) %>% 
   group_by(subject_id, itemid) %>% 
   arrange(charttime) %>% 
-  slice_head(n=1) %>% 
+  slice_head(n = 1) %>% 
   select(subject_id, itemid, valuenum) %>% 
   ungroup() %>% 
   pivot_wider(names_from = itemid, values_from = valuenum) %>% 
   print(width = Inf) 
-colnames(chartevents_tble) <- c("subject_id","heart_rate",
+colnames(chartevents_tble) <- c("subject_id", "heart_rate", 
                                 "systolic_blood_pressure",
                                 "mean_blood_pressure",
                                 "respiratory_rate",
@@ -415,6 +449,8 @@ colnames(chartevents_tble) <- c("subject_id","heart_rate",
 53150
 
 3. Summarize these vital measurements by appropriate numerics and graphics. 
+
+**solution**
 
 ```{r}
 summary(chartevents_tble)
@@ -455,14 +491,22 @@ and columns contain at least following variables
 - first vital measurements during ICU stay
 - an indicator variable `thirty_day_mort` whether the patient died within 30 days of hospital admission (30 day mortality)
 
+**solution**
+
 ```{r}
 mimic_icu_cohort <- 
-  inner_join(icustays_tble, admissions_tble, by = "subject_id") %>%
-  inner_join(patients_tble,by = "subject_id") %>% 
-  inner_join(labevents_tble,by = "subject_id") %>% 
-  inner_join(chartevents_tble,by = "subject_id") %>% 
-  filter(anchor_age > 18)
-  mutate(thirty_day_mort = (deathtime - admittime) < 30)  
+  left_join(icustays_tble, admissions_tble, by = "subject_id") %>%
+  left_join(patients_tble, by = "subject_id") %>% 
+  left_join(labevents_tble, by = "subject_id") %>% 
+  left_join(chartevents_tble, by = "subject_id") %>% 
+  mutate(age = anchor_age + year(admittime) - anchor_year) %>% 
+  filter(age > 18) %>% 
+  mutate(thirty_day_mort = "No") %>% 
+  mutate(minus = (deathtime - admittime))  
+mimic_icu_cohort$thirty_day_mort <- 
+  ifelse(is.na(mimic_icu_cohort$deathtime), "No",
+  ifelse(mimic_icu_cohort$deathtime - mimic_icu_cohort$admittime <= 2592000,
+                                            "Yes", "No"))
 ```
 
 
@@ -471,18 +515,225 @@ mimic_icu_cohort <-
 
 Summarize following information using appropriate numerics or graphs.
 
+**solution**
+
 - `thirty_day_mort` vs demographic variables (ethnicity, language, insurance, marital_status, gender, age at hospital admission)
 
-```{r}
+**ethnicity**
 
+```{r}
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "Yes") %>% 
+  group_by(ethnicity) %>% 
+  ggplot(mapping = aes(x = "", fill = ethnicity)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient died within 30 days of hospital admission")
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "No") %>% 
+  group_by(ethnicity) %>% 
+  ggplot(mapping = aes(x = "", fill = ethnicity)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient did not die within 30 days of hospital admission")
+```
+
+For ethnicity, the proportion of white people are more which did not die in the hospital  compared to people died in the hospital within 30 days. The proportion of unknown ethnicity and black/aferican american people are greater for people died in hospital within 30 days.
+
+**language**
+```{r}
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "Yes") %>% 
+  group_by(language) %>% 
+  ggplot(mapping = aes(x = "", fill = language)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient died within 30 days of hospital admission")
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "No") %>% 
+  group_by(language) %>% 
+  ggplot(mapping = aes(x = "", fill = language)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient did not die within 30 days of hospital admission")
+```
+
+The proportion of using English are almost same for people died in hospital within 30 days and who are not
+
+**insurance**
+```{r}
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "Yes") %>% 
+  group_by(insurance) %>% 
+  ggplot(mapping = aes(x = "", fill = insurance)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient died within 30 days of hospital admission")
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "No") %>% 
+  group_by(insurance) %>% 
+  ggplot(mapping = aes(x = "", fill = insurance)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient did not die within 30 days of hospital admission")
+```
+
+The proportion of medicare are more and medicaid are less for people died in hospital within 30 days and who are not.
+
+**marital_status**
+
+```{r}
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "Yes") %>% 
+  group_by(marital_status) %>% 
+  ggplot(mapping = aes(x = "", fill = marital_status)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient died within 30 days of hospital admission")
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "No") %>% 
+  group_by(marital_status) %>% 
+  ggplot(mapping = aes(x = "", fill = marital_status)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient did not die within 30 days of hospital admission")
+```
+
+The proportion of single and married are less for people died in hospital within 30 days and who are not. But The proportion of widowed are more for people died in hospital within 30 days and who are not
+
+**gender**
+
+```{r}
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "Yes") %>% 
+  group_by(gender) %>% 
+  ggplot(mapping = aes(x = "", fill = gender)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+   labs(title = "Patient died within 30 days of hospital admission")
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "No") %>% 
+  group_by(gender) %>% 
+  ggplot(mapping = aes(x = "", fill = gender)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient did not die within 30 days of hospital admission")
+```
+
+The proportion of female are more for people died in hospital within 30 days and who are not
+
+**age at hospital admission**
+```{r}
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "Yes") %>% 
+  ggplot(mapping = aes(x = age)) +
+  geom_histogram(outlier.shape = NA) +
+  labs(title = "Patient died within 30 days of hospital admission")
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "No") %>% 
+  ggplot(mapping = aes(x = age)) +
+  geom_histogram(outlier.shape = NA) +
+  labs(title = "Patient did not die within 30 days of hospital admission")
+tapply(mimic_icu_cohort$age, mimic_icu_cohort$thirty_day_mort, summary)
+```
+
+for people who did not died in hospital with in 30 days, their age centered at 55-80, but for people who died in 30 days, many of them are older 80. And we can see that the median and mean are greater for people died in the hospital.
+
+
+- `thirty_day_mort` vs first lab measurements
+
+```{r}
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "Yes") %>% 
+  select(bicarbonate, calcium, chloride, creatinine, glucose, magnesium, 
+         potassium, sodium, hematocrit, white_blood_cell) %>%
+  summary()
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "No") %>% 
+  select(bicarbonate, calcium, chloride, creatinine, glucose, magnesium, 
+         potassium, sodium, hematocrit, white_blood_cell) %>%
+  summary()
+```
+
+
+
+- `thirty_day_mort` vs first vital measurements
+
+```{r}
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "Yes") %>% 
+  select(bicarbonate, systolic_blood_pressure, mean_blood_pressure, 
+         body_temperature, respiratory_rate) %>%
+  summary()
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "No") %>% 
+  select(bicarbonate, systolic_blood_pressure, mean_blood_pressure, 
+         body_temperature, respiratory_rate) %>%
+  summary()
+```
+
+
+- `thirty_day_mort` vs first ICU unit
+
+**first ICU type in which the patient was cared for**
+
+```{r}
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "Yes") %>% 
+  group_by(first_careunit) %>% 
+  ggplot(mapping = aes(x = "", fill = first_careunit)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient died within 30 days of hospital admission")
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "No") %>% 
+  group_by(first_careunit) %>% 
+  ggplot(mapping = aes(x = "", fill = first_careunit)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient did not die within 30 days of hospital admission")
+```
+
+**last ICU type in which the patient was cared for**
+
+```{r}
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "Yes") %>% 
+  group_by(last_careunit) %>% 
+  ggplot(mapping = aes(x = "", fill = last_careunit)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient died within 30 days of hospital admission")
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "No") %>% 
+  group_by(last_careunit) %>% 
+  ggplot(mapping = aes(x = "", fill = last_careunit)) + 
+  geom_bar(width = 1) + 
+  coord_polar("y") +
+  labs(title = "Patient did not die within 30 days of hospital admission")
+```
+
+**length of stay for the patient for the given ICU stay**
+
+```{r}
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "Yes") %>% 
+  ggplot(mapping = aes(x = los)) +
+  geom_histogram(outlier.shape = NA) +
+  xlim(0, 40) + 
+  labs(title = "Patient died within 30 days of hospital admission") 
+mimic_icu_cohort %>% 
+  filter(thirty_day_mort == "No") %>% 
+  ggplot(mapping = aes(x = los)) +
+  geom_histogram(outlier.shape = NA) +
+  labs(title = "Patient did not die within 30 days of hospital admission") +
+  xlim(0, 40)
+tapply(mimic_icu_cohort$los, mimic_icu_cohort$thirty_day_mort, summary)
 ```
 
 
 
 
-- `thirty_day_mort` vs first lab measurements
 
-- `thirty_day_mort` vs first vital measurements
 
-- `thirty_day_mort` vs first ICU unit
 
