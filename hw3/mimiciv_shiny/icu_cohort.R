@@ -104,7 +104,6 @@ server <- function(input, output) {
     summary(data)
   })
   
-  
   output$histgram_lab <- renderPlot({
     data2 <- switch(input$var3,
                     "Yes" = counties[counties$thirty_day_mort == "Yes", ],
@@ -153,7 +152,7 @@ server <- function(input, output) {
                     "language" = data2$language,
                     "ethnicity" = data2$ethnicity,
                     "insurance" = data2$insurance,
-                    "marital_status" = data2$marital_status,
+                    "marital status" = data2$marital_status,
                     "gender" = data2$gender)
     count <- table(data1)
     barplot(count)
