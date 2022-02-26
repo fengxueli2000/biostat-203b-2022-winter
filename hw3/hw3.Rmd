@@ -152,7 +152,6 @@ chartevents_tble <- semi_join(chartevents_tble, icustays_tble,
 ```
 Only keep the first chart events during ICU stay and pivot chart events to become variables/columns.
 ```{r}
-# # TODO
 chartevents_tble <- left_join(chartevents_tble, icustays_tble, 
                             by = c("subject_id")) %>% 
   filter(charttime >= intime) %>% 
