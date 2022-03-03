@@ -51,10 +51,12 @@ A, B, C column have missing value. First, we use the relationship between A and 
 4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
 
 ```{r}
-icu <- readRDS("icu_cohort.rds")
+icu_cohort <- readRDS("~/Desktop/biostat-203b-2022-winter/hw4/icu_cohort.rds")
+data_num <- data[ , num_cols]  
 require(miceRanger)
+num_cols <- unlist(lapply(data, is.numeric))  
 miceObj <- miceRanger(
-         icu_cohort,
+          icustays_tble,
          m=3,
          max.depth=10)
 dataList <- completeData(miceObj)
@@ -86,4 +88,62 @@ Develop at least two analytic approaches for predicting the 30-day mortality of 
 2. Train the models using the training set.
 
 3. Compare model prediction performance on the test set.
+
+```{r}
+fulldata <- transform(fulldata, arm = as.factor(arm))
+
+fulldata <- D
+library(pROC)
+library(ggplot2)
+#using logistic regression
+ind <- sample(2, nrow(fulldata), replace = TRUE, prob = c(0.8, 0.2))
+set.seed(100)
+train <- fulldata[ind ==1, ]
+test <- fulldata[ind ==2, ]
+model1 <- glm(formula = status~. ,family = binomial(link = "logit"), data = train)
+summary(model1)
+model2 <- step(object = model1,trace = 0)
+summary(model2)
+prob<-predict(object =model2,newdata=test,type = "response")
+pred<-ifelse(prob>=0.5,"yes","no")
+pred<-factor(pred,levels = c("no","yes"),order=TRUE)
+table(test$status,pred)
+roc_curve <- roc(test$status,prob)
+x <- 1-roc_curve$specificities
+y <- roc_curve$sensitivities
+p <- ggplot(data = NULL, mapping = aes(x= x, y = y)) +
+  geom_line(colour = 'red') +
+  geom_abline(intercept = 0, slope = 1)
+p
+```
+
+```{r}
+fulldata <- D
+library(pROC)
+library(ggplot2)
+#using random forest
+fulldata <- transform(fulldata, status = as.factor(status))
+ind <- sample(2, nrow(fulldata), replace = TRUE, prob = c(0.8, 0.2))
+set.seed(100)
+train <- fulldata[ind ==1, ]
+test <- fulldata[ind ==2, ]
+model1 <-  rf <- randomForest(status~., data = train, ntree = 400, mtry = 2,
+                              importance = T)
+prob<-predict(object =model2,newdata=test,type = "response")
+pred<-ifelse(prob>=0.5,"yes","no")
+pred<-factor(pred,levels = c("no","yes"),order=TRUE)
+table(test$status,pred)
+roc_curve <- roc(test$status,prob)
+x <- 1-roc_curve$specificities
+y <- roc_curve$sensitivities
+p <- ggplot(data = NULL, mapping = aes(x= x, y = y)) +
+  geom_line(colour = 'red') +
+  geom_abline(intercept = 0, slope = 1)
+p
+```
+
+
+
+
+
 
