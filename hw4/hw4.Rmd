@@ -46,20 +46,52 @@ A, B, C column have missing value. First, we use the relationship between A and 
 
 3. Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s.
 
+```{r}
+icu_cohort <- as.data.frame(icu_cohort2)
+#check the outliers in lab and vital data
+for (i in 28:42){
+  icu_cohort[, i] <- as.numeric(unlist(icu_cohort[, i]))
+  outlier_up <- 3 * IQR(icu_cohort[, i],na.rm = TRUE) + 
+    quantile(icu_cohort[, i], 3/4, na.rm = TRUE)
+  outlier_down <- quantile(icu_cohort[, i], 1/4, na.rm = TRUE) - 
+    3 * IQR(icu_cohort[, i],na.rm = TRUE) 
+  na1 <- length(which(icu_cohort[, i] >= outlier_up))
+  na2 <- length(which(icu_cohort[, i] <= outlier_down))
+  na3 <- sum(is.na(icu_cohort[, i])) 
+  na <- na1 + na2 + na3
+  icu_cohort[ which(icu_cohort[, i] >= outlier_up), i] <- "NA"
+   icu_cohort[, i] <- as.numeric(unlist(icu_cohort[, i]))
+  icu_cohort[ which(icu_cohort[, i] <= outlier_down), i] <- "NA"
+  icu_cohort[, i] <- as.numeric(unlist(icu_cohort[, i]))
+  print(na) 
+}
+```
 
+we can see that all the variable have less than 5000`NA`
 
 4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
 
 ```{r}
 icu_cohort <- readRDS("~/Desktop/biostat-203b-2022-winter/hw4/icu_cohort.rds")
-data_num <- data[ , num_cols]  
+```
+
+
+```{r}
+icu_select <- icu_cohort %>% 
+  select("gender","age", "marital_status", "ethnicity",
+         "lab50971", "lab51301", "lab50882", "lab51221",
+         "lab50931", "lab50912", "lab50902", "lab50983",
+         "lab50960", "lab50893", "vital220179", "vital220181",
+         "vital220210", "vital223761", "vital220045")
+icu_select$gender <-factor(icu_select$gender)
+icu_select$marital_status <-factor(icu_select$marital_status)
+icu_select$ethnicity <-factor(icu_select$ethnicity)
 require(miceRanger)
-num_cols <- unlist(lapply(data, is.numeric))  
 miceObj <- miceRanger(
-          icustays_tble,
+          icu_select,
          m=3,
          max.depth=10)
-dataList <- completeData(miceObj)
+dataList <- completeData(miceObj, datasets = 2)
 data <- data.frame(dataList)
 data %>%  write_rds("icu_cohort.rds")
 ```
