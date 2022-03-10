@@ -46,9 +46,10 @@ A, B, C column have missing value. First, we use the relationship between A and 
 
 3. Perform a data quality check of the ICU stays data. Discard variables with substantial missingness, say >5000 `NA`s. Replace apparent data entry errors by `NA`s.
 
-```{r}
-icu_cohort <- as.data.frame(icu_cohort2)
-#check the outliers in lab and vital data
+```{r setup, warning=FALSE}
+icu_cohort <- readRDS("icu_cohort.rds")
+icu_cohort <- as.data.frame(icu_cohort)
+#check the extreme outliers in lab and vital data
 for (i in 28:42){
   icu_cohort[, i] <- as.numeric(unlist(icu_cohort[, i]))
   outlier_up <- 3 * IQR(icu_cohort[, i],na.rm = TRUE) + 
@@ -71,42 +72,54 @@ we can see that all the variable have less than 5000`NA`
 
 4. Impute missing values by `miceRanger` (request $m=3$ data sets). This step is computational intensive. Make sure to save the imputation results as a file. Hint: Setting `max.depth=10` in the `miceRanger` function may cut some computing time.
 
-```{r}
-icu_cohort <- readRDS("~/Desktop/biostat-203b-2022-winter/hw4/icu_cohort.rds")
-```
-
-
-```{r}
+```{r eval = FALSE}
+# select lab, vital, categorical and thirty_day_mort variable
 icu_select <- icu_cohort %>% 
   select("gender","age", "marital_status", "ethnicity",
          "lab50971", "lab51301", "lab50882", "lab51221",
          "lab50931", "lab50912", "lab50902", "lab50983",
          "lab50960", "lab50893", "vital220179", "vital220181",
-         "vital220210", "vital223761", "vital220045")
+         "vital220210", "vital223761", "vital220045","thirty_day_mort") 
+#change yes and no to 1 and 0
+icu_select$thirty_day_mort <- 
+  ifelse(icu_select$thirty_day_mort == "Yes", 1, 0)
+icu_select %>%  write_rds("icu_cohort_run.rds")
+#change character variable to factor
 icu_select$gender <-factor(icu_select$gender)
 icu_select$marital_status <-factor(icu_select$marital_status)
 icu_select$ethnicity <-factor(icu_select$ethnicity)
 require(miceRanger)
+# impute the missing data
 miceObj <- miceRanger(
           icu_select,
-         m=1,
-         max.depth=10)
-dataList <- completeData(miceObj, datasets = 2)
-data <- data.frame(dataList)
-data %>%  write_rds("icu_cohort.rds")
+         m=3,
+         max.depth=10,
+         returnModels = FALSE)
+# write all the three impute dataset
+miceObj %>%  write_rds("icu_cohort_mice.rds")
 ```
 
 5. Make imputation diagnostic plots and explain what they mean.
 
 ```{r}
-#plot Distribution of Imputed Values
-plotDistributions(miceObj,vars='allNumeric')
+# read impute data
+icu_cohort_mice <- readRDS("icu_cohort_mice.rds")
+# plot Distribution of Imputed Values
+plotDistributions(icu_cohort_mice,vars='allNumeric')
 ```
 
 The red line is the density of the original, nonmissing data. The smaller, black lines are the density of the imputed values in each of the datasets. If these don’t match up, it’s not a problem, however it may tell you that your data was not Missing Completely at Random (MCAR).
 
 
 6. Choose one of the imputed data sets to be used in Q2. This is **not** a good idea to use just one imputed data set or to average multiple imputed data sets. Explain in a couple of sentences what the correct Multiple Imputation strategy is.
+
+```{r}
+#select dataset 2
+dataList <- completeData(icu_cohort_mice, datasets = 2)
+data <- data.frame(dataList)
+data %>%  write_rds("icu_cohort_mice2.rds")
+```
+
 
 The first stage is to create multiple copies of the dataset, with the missing values replaced by imputed values.The second stage is to use standard statistical methods to fit the model of interest to each of the imputed datasets
 Imputing the mean preserves the mean of the observed data. So if the data are missing completely at random, the estimate of the mean remains unbiased
@@ -122,25 +135,37 @@ Develop at least two analytic approaches for predicting the 30-day mortality of 
 3. Compare model prediction performance on the test set.
 
 ```{r}
-fulldata <- transform(fulldata, arm = as.factor(arm))
-
-fulldata <- D
+install.packages("caret")
 library(pROC)
 library(ggplot2)
-#using logistic regression
-ind <- sample(2, nrow(fulldata), replace = TRUE, prob = c(0.8, 0.2))
+library(caret)
+library(randomForest)
+# read icu_cohort_mice2
+icu_cohort_mice2 <- readRDS("icu_cohort_mice2.rds")
+# change character to factor
+icu_cohort_mice2$Dataset_2.gender <-factor(icu_cohort_mice2$Dataset_2.gender)
+icu_cohort_mice2$Dataset_2.marital_status <-
+  factor(icu_cohort_mice2$Dataset_2.marital_status)
+icu_cohort_mice2$Dataset_2.ethnicity <-
+  factor(icu_cohort_mice2$Dataset_2.ethnicity)
+icu_cohort_mice2$Dataset_2.thirty_day_mort <-
+  factor(icu_cohort_mice2$Dataset_2.thirty_day_mort)
+#partition
 set.seed(100)
-train <- fulldata[ind ==1, ]
-test <- fulldata[ind ==2, ]
-model1 <- glm(formula = status~. ,family = binomial(link = "logit"), data = train)
+intrain <- createDataPartition(y = icu_cohort_mice2$Dataset_2.thirty_day_mort,
+                               p = 0.8, list = FALSE)
+training <- icu_cohort_mice2[intrain,]
+testing <- icu_cohort_mice2[-intrain,]
+# run logistic model
+model1 <- glm(formula = Dataset_2.thirty_day_mort~. ,
+              family = binomial(link = "logit"), data = training)
 summary(model1)
-model2 <- step(object = model1,trace = 0)
-summary(model2)
-prob<-predict(object =model2,newdata=test,type = "response")
-pred<-ifelse(prob>=0.5,"yes","no")
-pred<-factor(pred,levels = c("no","yes"),order=TRUE)
-table(test$status,pred)
-roc_curve <- roc(test$status,prob)
+# predict 
+prob<-predict(object = model1, newdata=testing, type = "response")
+pred<-ifelse(prob >= 0.5, "yes", "no")
+pred<-factor(pred, levels = c("no", "yes"), order = TRUE)
+table(testing$Dataset_2.thirty_day_mort, pred)
+roc_curve <- roc(testing$Dataset_2.thirty_day_mort,prob)
 x <- 1-roc_curve$specificities
 y <- roc_curve$sensitivities
 p <- ggplot(data = NULL, mapping = aes(x= x, y = y)) +
@@ -150,19 +175,11 @@ p
 ```
 
 ```{r}
-fulldata <- D
-library(pROC)
-library(ggplot2)
-#using random forest
-fulldata <- transform(fulldata, status = as.factor(status))
-ind <- sample(2, nrow(fulldata), replace = TRUE, prob = c(0.8, 0.2))
-set.seed(100)
-train <- fulldata[ind ==1, ]
-test <- fulldata[ind ==2, ]
-model1 <-  rf <- randomForest(status~., data = train, ntree = 400, mtry = 2,
-                              importance = T)
-prob<-predict(object =model2,newdata=test,type = "response")
-pred<-ifelse(prob>=0.5,"yes","no")
+model2 <- randomForest(Dataset_2.thirty_day_mort~., data = training, 
+                       ntree = 200, mtry = 5, importance = T)
+prob <- predict(object = model2, newdata = testing, type = "response")
+predictions <- as.data.frame(predict(model2, testing, type = "prob"))
+pred<-ifelse(prob >= 0.5, "yes", "no")
 pred<-factor(pred,levels = c("no","yes"),order=TRUE)
 table(test$status,pred)
 roc_curve <- roc(test$status,prob)
