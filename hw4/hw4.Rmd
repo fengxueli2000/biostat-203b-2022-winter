@@ -89,7 +89,7 @@ icu_select$ethnicity <-factor(icu_select$ethnicity)
 require(miceRanger)
 miceObj <- miceRanger(
           icu_select,
-         m=3,
+         m=1,
          max.depth=10)
 dataList <- completeData(miceObj, datasets = 2)
 data <- data.frame(dataList)
