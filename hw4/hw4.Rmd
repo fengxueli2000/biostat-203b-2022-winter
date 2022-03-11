@@ -79,21 +79,21 @@ icu_select <- icu_cohort %>%
          "lab50971", "lab51301", "lab50882", "lab51221",
          "lab50931", "lab50912", "lab50902", "lab50983",
          "lab50960", "lab50893", "vital220179", "vital220181",
-         "vital220210", "vital223761", "vital220045","thirty_day_mort") 
+         "vital220210", "vital223761", "vital220045", "thirty_day_mort") 
 #change yes and no to 1 and 0
 icu_select$thirty_day_mort <- 
   ifelse(icu_select$thirty_day_mort == "Yes", 1, 0)
 icu_select %>%  write_rds("icu_cohort_run.rds")
 #change character variable to factor
-icu_select$gender <-factor(icu_select$gender)
-icu_select$marital_status <-factor(icu_select$marital_status)
-icu_select$ethnicity <-factor(icu_select$ethnicity)
+icu_select$gender <- factor(icu_select$gender)
+icu_select$marital_status <- factor(icu_select$marital_status)
+icu_select$ethnicity <- factor(icu_select$ethnicity)
 require(miceRanger)
 # impute the missing data
 miceObj <- miceRanger(
-          icu_select,
-         m=3,
-         max.depth=10,
+         icu_select,
+         m = 3,
+         max.depth = 10,
          returnModels = FALSE)
 # write all the three impute dataset
 miceObj %>%  write_rds("icu_cohort_mice.rds")
@@ -105,10 +105,10 @@ miceObj %>%  write_rds("icu_cohort_mice.rds")
 # read impute data
 icu_cohort_mice <- readRDS("icu_cohort_mice.rds")
 # plot Distribution of Imputed Values
-plotDistributions(icu_cohort_mice,vars='allNumeric')
+plotDistributions(icu_cohort_mice, vars = 'allNumeric')
 ```
 
-The red line is the density of the original, nonmissing data. The smaller, black lines are the density of the imputed values in each of the datasets. If these don’t match up, it’s not a problem, however it may tell you that your data was not Missing Completely at Random (MCAR).
+The red line is the density of the original, nonmissing data. The smaller, black lines are the density of the imputed values in each of the datasets. If these don’t match up, the data may  not be Missing Completely at Random.
 
 
 6. Choose one of the imputed data sets to be used in Q2. This is **not** a good idea to use just one imputed data set or to average multiple imputed data sets. Explain in a couple of sentences what the correct Multiple Imputation strategy is.
@@ -135,7 +135,6 @@ Develop at least two analytic approaches for predicting the 30-day mortality of 
 3. Compare model prediction performance on the test set.
 
 ```{r}
-install.packages("caret")
 library(pROC)
 library(ggplot2)
 library(caret)
@@ -161,31 +160,42 @@ model1 <- glm(formula = Dataset_2.thirty_day_mort~. ,
               family = binomial(link = "logit"), data = training)
 summary(model1)
 # predict 
-prob<-predict(object = model1, newdata=testing, type = "response")
-pred<-ifelse(prob >= 0.5, "yes", "no")
-pred<-factor(pred, levels = c("no", "yes"), order = TRUE)
-table(testing$Dataset_2.thirty_day_mort, pred)
-roc_curve <- roc(testing$Dataset_2.thirty_day_mort,prob)
+prob1 <- predict(object = model1, newdata = testing, type = "response")
+pred1 <- ifelse(prob1 >= 0.5, "1", "0")
+pred1 <- factor(pred1, levels = c("1", "0"), order = TRUE)
+testing$Dataset_2.thirty_day_mort <- 
+  factor(testing$Dataset_2.thirty_day_mort, order = TRUE)
+confusionMatrix(data = as.factor(pred1), 
+                reference = as.factor( testing$Dataset_2.thirty_day_mort))
+# roc curve
+roc_curve <- roc(testing$Dataset_2.thirty_day_mort,prob1)
 x <- 1-roc_curve$specificities
 y <- roc_curve$sensitivities
-p <- ggplot(data = NULL, mapping = aes(x= x, y = y)) +
+p <- ggplot(data = NULL, mapping = aes(x = x, y = y)) +
   geom_line(colour = 'red') +
   geom_abline(intercept = 0, slope = 1)
 p
 ```
 
 ```{r}
+#random forest
 model2 <- randomForest(Dataset_2.thirty_day_mort~., data = training, 
                        ntree = 200, mtry = 5, importance = T)
-prob <- predict(object = model2, newdata = testing, type = "response")
+# predict
 predictions <- as.data.frame(predict(model2, testing, type = "prob"))
-pred<-ifelse(prob >= 0.5, "yes", "no")
-pred<-factor(pred,levels = c("no","yes"),order=TRUE)
-table(test$status,pred)
-roc_curve <- roc(test$status,prob)
+predictions$predict <- 
+  names(predictions)[1:2][apply(predictions[,1:2], 1, which.max)]
+pred <- ifelse(predictions$predict == 1, "1", "0")
+pred <- factor(pred, levels = c("1", "0"), order = TRUE)
+
+table(testing$Dataset_2.thirty_day_mort, pred)
+confusionMatrix(data = as.factor(pred),
+                reference = as.factor(testing$Dataset_2.thirty_day_mort))
+# roc curve
+roc_curve <- roc(testing$Dataset_2.thirty_day_mort, predictions$`1`)
 x <- 1-roc_curve$specificities
 y <- roc_curve$sensitivities
-p <- ggplot(data = NULL, mapping = aes(x= x, y = y)) +
+p <- ggplot(data = NULL, mapping = aes(x = x, y = y)) +
   geom_line(colour = 'red') +
   geom_abline(intercept = 0, slope = 1)
 p
