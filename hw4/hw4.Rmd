@@ -111,6 +111,16 @@ plotDistributions(icu_cohort_mice, vars = 'allNumeric')
 The red line is the density of the original, nonmissing data. The smaller, black lines are the density of the imputed values in each of the datasets. If these don’t match up, the data may  not be Missing Completely at Random.
 
 
+```{r}
+plotModelError(icu_cohort_mice, vars = 'allNumeric')
+```
+ The variables were imputed with a reasonable degree of accuracy except lab50983 and vital 220181, vital 223761 and vital 220045.
+ 
+```{r}
+plotVarImportance(icu_cohort_mice)
+```
+ 
+
 6. Choose one of the imputed data sets to be used in Q2. This is **not** a good idea to use just one imputed data set or to average multiple imputed data sets. Explain in a couple of sentences what the correct Multiple Imputation strategy is.
 
 ```{r}
